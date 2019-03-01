@@ -1,5 +1,6 @@
 package com.nicolastelera.bluritsample
 
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Rect
 import android.os.Bundle
@@ -14,26 +15,12 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        blurIt = BlurIt(this)
-        initView()
-    }
 
-    private fun initView() {
-        val srcBitmap = BitmapFactory.decodeResource(resources, R.drawable.landscape)
-        blurImageView.setImageBitmap(srcBitmap)
-        blurButton.setOnClickListener {
-            val blurredSrc = blurIt.blurBitmap(srcBitmap, 25f)
-            blurImageView.setImageBitmap(blurredSrc)
-        }
-        blurPartButton.setOnClickListener {
-            val bounds = Rect(
-                srcBitmap.width / 4,
-                srcBitmap.height / 4,
-                (srcBitmap.width * 0.75f).toInt(),
-                (srcBitmap.height * 0.75).toInt()
-            )
-            val blurredSrc = blurIt.blurBitmapPart(srcBitmap, 25f, bounds)
-            blurImageView.setImageBitmap(blurredSrc)
+        blurIt = BlurIt(this)
+
+        with(BitmapFactory.decodeResource(resources, R.drawable.landscape)) {
+            blurImageView.setImageBitmap(this)
+            initClickListener(this)
         }
     }
 
@@ -41,4 +28,26 @@ class MainActivity : AppCompatActivity() {
         blurIt.destroy()
         super.onDestroy()
     }
+
+    private fun initClickListener(srcBitmap: Bitmap) {
+        blurButton.setOnClickListener {
+            val blurredSrc = blurIt.blurBitmap(srcBitmap, 25f)
+            blurImageView.setImageBitmap(blurredSrc)
+        }
+
+        blurPartButton.setOnClickListener {
+            val bounds = with(srcBitmap) {
+                Rect(
+                    width.percent(0.25f),
+                    height.percent(0.25f),
+                    width.percent(0.75f),
+                    height.percent(0.75f)
+                )
+            }
+            val blurredSrc = blurIt.blurBitmapPart(srcBitmap, 25f, bounds)
+            blurImageView.setImageBitmap(blurredSrc)
+        }
+    }
 }
+
+private fun Int.percent(percent: Float) = (this * percent).toInt()
